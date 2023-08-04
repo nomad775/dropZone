@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+    <head>
+        <title>DropZone</title>
+        <meta charset="UTF-16" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+        <!-- <link rel="manifest" href="manifest.json"> -->
+        <link rel="shortcut icon" href="https://cdn.brandfolder.io/3I2CY2XL/as/ttqvsvbm46pcrm38bncstf/favicon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="sidebar.css">
+        <script src="sidebar.js"></script>
+
+    </head>
+
+
+    <body onload="initialize()">
+        <div>
+            <div class="section" id="collectionsSection">
+                <div class="sectionHead">
+                    <h1>Collections</h1>
+                    <hr>
+                </div>
+
+                <div id="collections">
+                    <div class="project" class="activeProject" id="p1" style="margin:auto;">
+                        <img src="https://cdn.brandfolder.io/3I2CY2XL/as/ttqvsvbm46pcrm38bncstf/favicon.ico">
+                        <span contenteditable="true">Task1</span>
+                    </div>
+                    <div class="project" id="p2">
+                        <img src="https://cdn.brandfolder.io/3I2CY2XL/as/ttqvsvbm46pcrm38bncstf/favicon.ico">
+                        <span>Task2</span>
+                    </div>
+                    <div class="project" id="p3">
+                        <img src="https://cdn.brandfolder.io/3I2CY2XL/as/ttqvsvbm46pcrm38bncstf/favicon.ico">
+                        <span>Task3</span>
+                    </div>
+                    <div class="project" id="p4">
+                        <img>
+                        <span>Add Task</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section" id="dataSection">
+                <div class="sectionHead">
+                    <h1 id="dataSectionHead">Data</h1>
+                    <span id="deleteIcon" class="icon" title="Delete current project"><i class="fa fa-trash" aria-hidden="true"></i></span>
+                    <span id="saveIcon" class="icon"  title="Save current proejct data"><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
+                    <span id="downloadIcon" class="icon" title="Export project data to file"><i class="fa fa-download"></i></span>
+
+                    <!-- <i class="fa fa-file-archive-o" aria-hidden="true"></i> -->
+                    <!-- <i class="fa fa-cloud" aria-hidden="true"></i> -->
+                    <!-- <i class="fa fa-external-link" aria-hidden="true"></i> -->
+                    <!-- <span>&#x1F5AB;</span>
+                    <button id="btnSave">
+                        <p>&#x1F5AB;</p>
+                    </button>
+                     -->
+                     <hr>
+                </div>
+
+                <div class="textDataItem">
+                    <h2 contenteditable="true">Click To Edit Title</h2>
+                    <p contenteditable="true">Click to add text</p>
+                </div>
+
+                <template id="cwiDataItemTemplate">
+                    <div class="cwiDataItemContainer">
+                        <div class="cwiDataItem">
+                            <a>
+                                <div class="cwiDataIcon" style="margin: auto; cursor: pointer;">
+                                    &#x1F517;
+                                    <!-- <i style="display: inline-block; width: 30px; margin:auto;" class="fa fa-cube" aria-hidden="true"></i> -->
+                                </div>
+                            </a>
+                            <div class="cwiDataName">103175520</div>
+                            <div class="cwiDataDesc">Halliburton SmartWell® </div>
+                            <div class="cwiDataUserLabel" contenteditable="true"></div>
+                        </div>
+                        <hr>
+                    </div>
+                </template>
+
+                <div class="section" id="cwiDataSection">
+                    <div class="sectionHead">
+                        <h2>CWI Data Items</h2>
+                        <hr>
+                    </div>
+                    
+                    <!-- DATA ITEMS WILL GO HERE -->
+
+                    <div id="dropTarget">
+                        <div id="dropTargetLabel" >+ Drop Here To Add Item +</div>
+                    </div>
+                    
+                </div>
+                      
+            </div>
+        </div>
+
+        <div id="trashCanSection" height="60px" width="100%" style="background-color:#222; border: 1px dashed #555; border-radius: 5px;">
+            <div id="trashCan">
+                &#x1F5D1; Drop Here To Remove Item &#x1F5D1;
+            </div>
+        </div>
+
+    </body>
+
+</html>

@@ -1,0 +1,23 @@
+{
+  "lang": "en-us",
+  "name": "CWI DropZone",
+  "short_name": "DropZone",
+  "description": "Sidebar app for dropping CWI items and store other notes",
+  "start_url": "/sidebar/",
+  "background_color": "#2f3d58",
+  "theme_color": "#2f3d58",
+  "orientation": "any",
+  "display": "browser",
+  
+  "icons":[
+    {
+      "src": "/sidebar/icon.png",
+      "sizes": "512x512"
+  }
+  ],
+
+  "edge_side_panel": {
+      "preferred_width": 380
+    }
+  
+}

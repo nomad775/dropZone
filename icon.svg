@@ -1,0 +1,31 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .small {
+            font: italic 120px "arial black";
+            justify: center;
+            fill: white;
+            }
+        
+    </style>
+
+    <rect x="5" y="5" width="490" height="490" rx="25" ry="25" stroke="blue" stroke-width="5" fill="none"/>
+
+    <!-- A rx ry x-axis-rotation large-arc-flag sweep-flag x y -->
+    <path d="M 50 180 A 200 150 0 0 1 450 180
+    a 80 50 0 0 0 -100 0 
+    a 80 50 0 0 0 -100 0
+    a 80 50 0 0 0 -100 0
+    a 80 50 0 0 0 -100 0
+    " stroke="blue" fill="blue"/>
+
+    <line x1="50"  y1="180" x2="250" y2="360" stroke="blue" stroke-width="5"/>
+    <line x1="150" y1="180" x2="250" y2="360" stroke="blue" stroke-width="5"/>
+    <line x1="250" y1="180" x2="250" y2="360" stroke="blue" stroke-width="5"/>
+    <line x1="350" y1="180" x2="250" y2="360" stroke="blue" stroke-width="5"/>
+    <line x1="450" y1="180" x2="250" y2="360" stroke="blue" stroke-width="5"/>
+
+    <rect x="100" y="360" width="300" height="120" rx="15" stroke="darkblue" stroke-width="3" fill="blue"/>
+    
+    <text font-family="Arial black" font-weight="bolder" font-size="120" font-style="italic" textLength="260" fill="white" x="105" y="465">CWI</text>
+
+</svg>
