@@ -17,28 +17,29 @@
     <body onload="initialize()">
         <div>
             <div class="section" id="collectionsSection">
-                <div class="sectionHead">
+                
+                <div class="sectionHead" id="collectionsSectionHead">
                     <h1>Collections</h1>
+                    <span id="addIcon" class="icon" title="Add a new collection"><i class="fa fa-plus" aria-hidden="true"></i></span>
+                    <span id="settingsIcon" class="icon" title="Settings"><i class="fa fa-cog" aria-hidden="true"></i></span>
                     <hr>
                 </div>
 
+                <template id="collectionTemplate">
+                    <div class="project" id="p1" style="overflow: hidden;">
+                        <img src="https://cdn.brandfolder.io/3I2CY2XL/as/ttqvsvbm46pcrm38bncstf/favicon.ico">
+                        <span width="20" style="width: 50px; overflow: hidden;">Task1</span>
+                    </div>
+                </template>
+
                 <div id="collections">
-                    <div class="project" class="activeProject" id="p1" style="margin:auto;">
+                    <!-- COLLECTION ITEMS WILL GO HERE -->
+
+                    <!-- <div class="project" class="activeProject" id="p1" style="margin:auto;">
                         <img src="https://cdn.brandfolder.io/3I2CY2XL/as/ttqvsvbm46pcrm38bncstf/favicon.ico">
                         <span contenteditable="true">Task1</span>
-                    </div>
-                    <div class="project" id="p2">
-                        <img src="https://cdn.brandfolder.io/3I2CY2XL/as/ttqvsvbm46pcrm38bncstf/favicon.ico">
-                        <span>Task2</span>
-                    </div>
-                    <div class="project" id="p3">
-                        <img src="https://cdn.brandfolder.io/3I2CY2XL/as/ttqvsvbm46pcrm38bncstf/favicon.ico">
-                        <span>Task3</span>
-                    </div>
-                    <div class="project" id="p4">
-                        <img>
-                        <span>Add Task</span>
-                    </div>
+                    </div>  -->
+
                 </div>
             </div>
 
@@ -48,21 +49,12 @@
                     <span id="deleteIcon" class="icon" title="Delete current project"><i class="fa fa-trash" aria-hidden="true"></i></span>
                     <span id="saveIcon" class="icon"  title="Save current proejct data"><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
                     <span id="downloadIcon" class="icon" title="Export project data to file"><i class="fa fa-download"></i></span>
-
-                    <!-- <i class="fa fa-file-archive-o" aria-hidden="true"></i> -->
-                    <!-- <i class="fa fa-cloud" aria-hidden="true"></i> -->
-                    <!-- <i class="fa fa-external-link" aria-hidden="true"></i> -->
-                    <!-- <span>&#x1F5AB;</span>
-                    <button id="btnSave">
-                        <p>&#x1F5AB;</p>
-                    </button>
-                     -->
-                     <hr>
+                    <hr>
                 </div>
 
                 <div class="textDataItem">
-                    <h2 contenteditable="true">Click To Edit Title</h2>
-                    <p contenteditable="true">Click to add text</p>
+                    <h2 id="collectionTitle" contenteditable="true">Click To Edit Title</h2>
+                    <p id="collectionDesc" contenteditable="true">Click to add text</p>
                 </div>
 
                 <template id="cwiDataItemTemplate">

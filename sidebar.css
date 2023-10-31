@@ -30,6 +30,7 @@ h1{
     font-family:Verdana, Geneva, Tahoma, sans-serif;
     font-size: small;
     color: brown;
+    height: 25px;
 }
 
 h2{
@@ -41,10 +42,47 @@ h2{
     content: " added ";
 }
 
+.icon{
+    width: 30px;
+    height: 30px;
+    border-radius: 3px;
+    border: none;
+    background-color: #000;
+    color: rgb(102, 6, 25);
+    font-size: 18pt;
+    margin: auto;
+}
+
+
 /* COLLECTIONS SECTION */
 /* =========================================================== */
+
+#addIcon{
+    position: absolute;
+    right: 60px;
+    top: 0px; 
+}
+
+#settingsIcon{
+    position: absolute;
+    right: 10px;
+    top: 0px; 
+}
+
 #collections{
+    height: 80px;
+    width: 100%;
+    padding-bottom: 10px;
+
     display: grid;
+    grid-template-columns: 90px 90px 90px 90px 90px 90px;
+    grid-template-rows: 80px;
+    grid-auto-flow: row;
+    row-gap: 15px;
+    justify-items: start;
+
+    overflow-y:auto;
+   
 }
 
 .project:hover{
@@ -52,7 +90,7 @@ h2{
 }
 
 .project{
-    width: 60px;
+    width: 80px;
     height: 60px;
     border: 1px solid rgba(255,0,0,.3);
     border-radius: 10px;
@@ -83,8 +121,8 @@ h2{
     grid-column: 3;
     grid-row:1;
 }
-#p4{
-    grid-column: 4;
+#p0{
+    grid-column: 5;
     grid-row:1;
     text-align: center;
 }
@@ -98,17 +136,6 @@ img{
 /* DATA SECTION */
 /* =========================================================== */
 #dataSection h1{height: 30px;}
-
-.icon{
-    width: 30px;
-    height: 30px;
-    border-radius: 3px;
-    border: none;
-    background-color: #000;
-    color: rgb(102, 6, 25);
-    font-size: 18pt;
-    margin: auto;
-}
 
 #deleteIcon{
     position: absolute;
@@ -158,6 +185,14 @@ img{
     border-radius: 10px;
 }
 
+
+#cwiDataSection.dragOver{
+    border: 3px solid green;
+}
+
+.dragOverRemove{
+    border: 3px solid red;
+}
 
 /* CWI Data Items */
 /* ============================= */

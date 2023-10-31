@@ -2,7 +2,8 @@
 var isInSidebar;
 var serviceWorker;
 
-var activeCollectionName;
+var activeCollectionId;
+
 var activeRow;
 
 // https://cwiprod.corp.halliburton.com/ematrix/cwi/images/cwisprite07272012.gif
@@ -10,39 +11,33 @@ var activeRow;
 function initialize(){
     console.log("initializing");
 
-    //detectSidebar();
+    detectSidebar();
     //initializeServiceWorker();
+   
     initializeEventListeners();
-
-    activeCollectionName = window.localStorage.getItem("activeCollection")
-    
-    loadFromLocalStorage();
-    
+    initializeCollections()
 }
 
 function detectSidebar(){
 
     // https://learn.microsoft.com/en-us/microsoft-edge/progressive-web-apps-chromium/how-to/sidebar#detect-usage-in-the-sidebar
 
-    console.log(navigator.userAgentData);
     const brands = navigator.userAgentData.brands;
     const sidebarBrandInfo = brands.find(b => b.brand === "Edge Side Panel");
 
-    console.log("detecting sidebar");
-    console.log(brands);
-
     if (sidebarBrandInfo) {
         isInSidebar = true;
-        console.log(sidebarBrandInfo); // { brand: "Edge Side Panel", version: "1" }
+        console.log("MicroSoft Edge sidebar IS detected!"); // { brand: "Edge Side Panel", version: "1" }
+        console.log(brands);
     } else {
         isInSidebar = false;
-        console.log("Microsoft Edge sidebar not detected");
+        console.log("Microsoft Edge sidebar NOT detected");
     }
 
 }
 
 function initializeServiceWorker(){
-    console.log("init service worker")
+    //console.log("init service worker")
 
     if('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sidebar/serviceWorker.js');
@@ -51,125 +46,305 @@ function initializeServiceWorker(){
 }
 
 function initializeEventListeners(){
-    
-    // collections sections
-    let items = document.getElementById("collections").children;
-    for(let item of items){
-        item.addEventListener("click", setActiveCollection);
-    }
 
+    // collections buttons
+    document.getElementById("addIcon").addEventListener("click", createNewCollection);
+    //document.getElementById("settingsIcon").addEventListener("click", );
+    
     // make CWI data section a drop target
     let sectionElement = document.getElementById("cwiDataSection");
-    sectionElement.addEventListener("dragover", (event) => event.preventDefault());
-    sectionElement.addEventListener("dragenter", (event) => event.preventDefault());
+
+    sectionElement.addEventListener("dragover", addClass);
+    sectionElement.addEventListener("dragenter",  addClass);
+    sectionElement.addEventListener("dragleave", removeClass);
+    
+    
     sectionElement.addEventListener("drop", dropDataItem);
     sectionElement.addEventListener("dragend", dropDataItem);
 
     sectionElement.addEventListener("mousedown", mouseDown);
-    //sectionElement.addEventListener("mouseup", mouseUp);
 
-    // set up trash can
-    let trashElement = document.getElementById("trashCan");
-    trashElement.addEventListener("dragover", (event) => event.preventDefault());
-    trashElement.addEventListener("dragenter", (event) => event.preventDefault());
-    trashElement.addEventListener("drop", removeDataItem);
-
-    // save button
+    // data items buttons
     document.getElementById("saveIcon").addEventListener("click",saveToLocalStorage);
-    document.getElementById("downloadIcon").addEventListener("click", exportToHTML);
+    document.getElementById("downloadIcon").addEventListener("click", exportCollectionToHTML);
+    document.getElementById("deleteIcon").addEventListener("click", deleteCollection);
 
-    window.addEventListener("beforeunload", saveToLocalStorage)
+     // set up drop trash can
+     let trashElement = document.getElementById("trashCan");
+     trashElement.addEventListener("dragover", (event) => event.preventDefault());
+     trashElement.addEventListener("dragenter", (event) => event.preventDefault());
+     trashElement.addEventListener("drop", removeDataItem);
 
+     // set auto-save on shutdown
+     window.addEventListener("beforeunload", saveToLocalStorage)
+}
+
+function addClass(event){
+    event.preventDefault();
+    event.target.classList.add("dragOver");
+}
+
+function removeClass(event){
+    event.preventDefault();
+
+    let el = this;
+    console.log(event);
+    el.classList.remove("dragOver")
+    // event.stopImmediatePropagation();
+    // event.bubbles=false;
+}
+
+// ============================================================================
+//            Collections
+// ============================================================================
+
+function initializeCollections(){
+    // load collections on load
+
+    let i = window.localStorage.length;
+    
+    for(let j=0; j<=i-1; j++){
+        
+        let key = localStorage.key(j);
+        
+        if(key != "activeCollection"){
+
+            let dataObj = JSON.parse(window.localStorage.getItem(key));
+            let title = dataObj.title;
+            let desc = dataObj.desc;
+
+            createCollectionElement(key, title, desc);
+        }
+    }
+}
+
+function createNewCollection(){
+    // create ID for new collection
+    // based on date/time created
+
+    let id;
+
+    id = "ID-";
+    id += String.fromCharCode(Math.random()*26 + 65);
+    id += String.fromCharCode(Math.random()*26 + 65);
+    id += String.fromCharCode(Math.random()*26 + 65);
+    id += String.fromCharCode(Math.random()*26 + 65);
+    id +="-" + Date.now();
+
+    let title = "New Collection";
+    let desc = "Click to enter description";
+
+   let newCollection = createCollectionElement(id, title, desc);
+    newCollection.click();
+}
+
+function createCollectionElement(id, title, desc){
+    // creates new collection icon
+    // new or on load
+
+    let parent = document.getElementById("collections");
+    let template = document.getElementById("collectionTemplate").content.firstElementChild;
+
+    let newCollection = template.cloneNode(true);
+    parent.append(newCollection);
+
+    newCollection.setAttribute("id", id);
+    newCollection.title = desc;
+
+    let labelElement = newCollection.getElementsByTagName("span")[0];
+    labelElement.textContent = title;
+    
+    newCollection.addEventListener("click", setActiveCollection);
+
+    return newCollection;
 }
 
 function setActiveCollection(event){
     
+    // un-set current active collection
     let activeProjects = document.getElementsByClassName("activeProject")
 
     if(activeProjects){
-    for(const active of activeProjects){
-        active.classList.remove("activeProject");
+        for(const active of activeProjects){
+            active.classList.remove("activeProject");
+            console.log("unset " + active.id);
+        }
     }
-}
-    
 
     saveToLocalStorage();
-    
-    let target = this;
-    let name = target.getElementsByTagName("span")[0].textContent;
-    console.log("loading " + name);
 
     //clear current data
-    let currentItems = document.getElementById("cwiDataSection").querySelectorAll(".cwiDataItemContainer");
-    
+    let section = document.getElementById("cwiDataSection");
+    let currentItems = section.querySelectorAll(".cwiDataItemContainer");
+
+    document.getElementById("collectionTitle").textContent = "New Collection";
+    document.getElementById("collectionDesc").textContent = "Click to add description";
+
     for(const item of currentItems){
-        console.log(item);
-        item.remove();
+       //console.log("removing " + item.tagName);
+        section.removeChild(item);
     }
 
-    // load data
-    activeCollectionName = name;
-    loadFromLocalStorage();
+    // set active collection
+    
+    // let target = this;
+    // let name = target.getElementsByTagName("span")[0].textContent;
+
+    activeCollectionId = this.id;
+    // activeCollectionName = name;
+
+    let id = this.id;
+    loadFromLocalStorage(id);
 
     this.classList.add("activeProject");
+
+    console.log("set active: " + activeCollectionId);
 }
 
-function mouseDown(event){
-    // prevents drag on data element if mouse is over text
-    // so that text may still be selectable
+function saveToLocalStorage(){
 
-    let element = event.target;    
-    let isContainer = element.classList.contains("cwiDataItem");
+    if(!activeCollectionId) return;
 
-    if(activeRow){
-        activeRow.classList.remove("activeRow");
-        activeRow = null;
-    }
+    console.log("saving " + activeCollectionId);
 
-    if(isContainer){
+    let collectionData = new Object;
 
-        activeRow = element.parentElement;
-        element.parentElement.setAttribute("draggable", "true");
-        activeRow.classList.add("activeRow");
+    // get title and desc
+    let title = document.getElementById("collectionTitle").textContent;
+    let desc = document.getElementById("collectionDesc").textContent;
 
-    }
-}
+    // get CWI data items
+    let dataSection = document.getElementById("cwiDataSection");
+    let dataItems = dataSection.querySelectorAll(".cwiDataItem");
 
-function dataItemClicked(event){
+    for(var i=0; i<dataItems.length; i++){
+
+        let item = dataItems[i];
+        let dataObj = item.querySelector("[objData]").getAttribute("objData");
+        
+        // add user label to objData attribute 
+        let objDataJSON = JSON.parse(dataObj);
+        let label = item.querySelector(".cwiDataUserLabel").textContent;
+        objDataJSON.label = label;
     
-    // set row to active for re-ordering or deleting
+        collectionData["key" + i] = objDataJSON;
+    }
     
-    console.log("clicked")
+    if(activeCollectionId && collectionData){
 
-    return;
+        let dataObj = new Object;
 
-    let outerDataItem = event.target.closest(".cwiDataItemContainer");
-    let innerDataItem = outerDataItem.children[0];
+        dataObj.title = title;
+        dataObj.desc = desc;
+        dataObj.cwiData = collectionData;
 
-    if(event.target.className == "cwiDataItem"){
-
-        if(activeRow){
-            // clear current activeRow
-            activeRow.children[0].style.border = "none";
-            activeRow.setAttribute("draggable", false);
-            activeRow.addEventListener("dragenter", reorderDataItems, true);  
-        }
-
-        if(outerDataItem == activeRow){
-            // clear activeRow
-            console.log("reset");
-            activeRow = null;
-            return;
-        }
-
-        event.target.style.border = "1px dashed red";
-
-        activeRow = event.target.parentNode;
-        activeRow.setAttribute("draggable", "true");
-        activeRow.removeEventListener("dragenter", reorderDataItems, true);
+        window.localStorage.setItem(activeCollectionId, JSON.stringify(dataObj));
 
     }
 }
+
+function loadFromLocalStorage(id){
+
+    //console.log("loading saved data");
+
+    let collectionData = window.localStorage.getItem(id);
+
+    if(!collectionData) return;
+
+    let dataObj = JSON.parse(collectionData);
+
+    let title = dataObj.title;
+    let desc = dataObj.desc;
+    let dataItems = dataObj.cwiData;
+
+    // set title and desc in data section
+    document.getElementById("collectionTitle").textContent = title;
+    document.getElementById("collectionDesc").textContent = desc;
+    
+    // set CWI data items
+    for(let key in dataItems){
+        let objData = dataItems[key];
+        createNewDataItem(objData);
+    }
+}
+
+function exportCollectionToHTML(){
+
+    if(!activeCollectionId) return;
+
+    console.log("exporting saved data");
+
+    // create new HTML documnet
+    let exportHTML = document.implementation.createHTMLDocument();
+    let exportBody = exportHTML.body;
+    
+    // heading
+    let h1 = exportHTML.createElement("H1");
+    h1.textContent = activeCollectionName;
+    exportBody.appendChild(h1);
+
+    //data items
+    let collectionData = window.localStorage.getItem(activeCollectionName);
+
+    if(!collectionData) return;
+
+    let dataItems = JSON.parse(collectionData);
+
+    for(let key in dataItems){
+        
+        let objData = dataItems[key];
+        let name = objData.name;
+
+        let newElement = createNewDataElement(objData);
+
+        newElement.querySelector(".cwiDataIcon").remove();
+        newElement.querySelector(".cwiDataName").remove();
+
+        newElement.getElementsByTagName("a")[0].textContent = name;
+        let type = objData.type;
+
+        //console.log(newElement);
+
+        exportBody.appendChild(newElement);
+
+
+    }
+
+    var a = document.createElement("a")
+    a.href = URL.createObjectURL(
+        new Blob([exportHTML.documentElement.outerHTML], {type:"text/html"})
+    )
+    
+    a.download = "DZexport.html"
+    //a.target = "_blank";
+    a.click()
+
+}
+
+function deleteCollection(){
+
+    if(!activeCollectionId) return;
+
+    let msg = "Are you sure you want to delete this collection?     " + activeCollectionId
+    msg += " \n\nThis cannot be undone!  Consider exporting the collection before removing."
+    msg += "\n\n Click Ok to continue deleting or Cancel to abort."
+    
+    if (window.confirm(msg)) {
+        
+        console.log("DELTEING " + activeCollectionId);
+        window.localStorage.removeItem(activeCollectionId);
+        document.getElementById(activeCollectionId).remove();
+        
+        activeCollectionId="";
+
+        //document.getElementById("collections").lastElementChild.click();
+    }
+}
+
+
+// ============================================================================
+//            CWI Data Item (dropped)
+// ============================================================================
 
 function dropDataItem(event){
     
@@ -203,6 +378,7 @@ function dropDataItem(event){
 
     }
     
+    //event.target.classList.remove("dragOver");
 }
 
 function parseCWIobjinfo(htmlText){
@@ -289,8 +465,6 @@ function createNewDataElement(objData){
     return newItem;    
 }
 
-
-
 function reorderDataItems(event){
     // drag enter (data item)
 
@@ -301,7 +475,7 @@ function reorderDataItems(event){
     
     event.stopImmediatePropagation();
     
-    console.log("enter");
+    //console.log("enter");
     //console.log(event.target);
 
     // section holds all the cwi data items
@@ -323,7 +497,7 @@ function reorderDataItems(event){
 
 function removeDataItem(event){
 
-    console.log("remove", event);
+    //console.log("remove", event);
 
     activeRow.remove();
     activeRow = null;
@@ -331,256 +505,27 @@ function removeDataItem(event){
 }
 
 
+function mouseDown(event){
+    // prevents drag on data element if mouse is over text
+    // so that text may still be selectable
 
-function saveToLocalStorage(){
+    let element = event.target;    
+    let isContainer = element.classList.contains("cwiDataItem");
 
-    console.log("saving");
-
-    let collectionData = new Object;
-
-    let dataSection = document.getElementById("cwiDataSection");
-    let dataItems = dataSection.querySelectorAll(".cwiDataItem");
-
-    for(var i=0; i<dataItems.length; i++){
-
-        let item = dataItems[i];
-        let dataObj = item.querySelector("[objData]").getAttribute("objData");
-        
-        // add user label to objData attribute 
-        let objDataJSON = JSON.parse(dataObj);
-        let label = item.querySelector(".cwiDataUserLabel").textContent;
-        objDataJSON.label = label;
-    
-        collectionData["key" + i] = objDataJSON;
+    if(activeRow){
+        activeRow.classList.remove("activeRow");
+        activeRow = null;
     }
- 
-    window.localStorage.setItem("activeCollection", activeCollectionName);
-    window.localStorage.setItem(activeCollectionName, JSON.stringify(collectionData));
 
-}
+    if(isContainer){
 
+        activeRow = element.parentElement;
+        element.parentElement.setAttribute("draggable", "true");
+        activeRow.classList.add("activeRow");
 
-function loadFromLocalStorage(){
-
-    console.log("loading saved data");
-
-    let collectionData = window.localStorage.getItem(activeCollectionName);
-
-    if(!collectionData) return;
-
-    let dataItems = JSON.parse(collectionData);
-
-    for(let key in dataItems){
-        let objData = dataItems[key];
-        createNewDataItem(objData);
     }
 }
 
-function exportCurrentCollectionToFile(){
-   
-    let collectionData = new Object;
-
-    let dataSection = document.getElementById("cwiDataSection");
-    let dataItems = dataSection.querySelectorAll(".cwiDataItem");
-
-    for(var i=0; i<dataItems.length; i++){
-
-        let item = dataItems[i];
-        let dataObj = item.querySelector("[objData]").getAttribute("objData");
-        
-        // add user label to objData attribute 
-        let objDataJSON = JSON.parse(dataObj);
-        let label = item.querySelector(".cwiDataUserLabel").textContent;
-        objDataJSON.label = label;
+function dataItemClicked(event){
     
-        collectionData["key" + i] = objDataJSON;
-    }
-    
-    console.log(JSON.stringify(collectionData));
-    json = JSON.stringify(collectionData);
-    var a = document.createElement("a")
-    a.href = URL.createObjectURL(
-        new Blob([json], {type:"application/json"})
-    )
-    
-    a.download = "DZexport.json"
-    a.click()
-
-    // window.localStorage.setItem("activeCollection", activeCollectionName);
-    // window.localStorage.setItem(activeCollectionName, JSON.stringify(collectionData));
-}
-
-function exportToXML(){
-   
-    console.log("saving");
-
-    let collectionData = new Object;
-
-    let dataSection = document.getElementById("cwiDataSection");
-    let dataItems = dataSection.querySelectorAll(".cwiDataItem");
-
-    let parser = new DOMParser;
-    let xml  = parser.parseFromString('<?xml version="1.0" encoding="utf-8"?><root></root>', "application/xml");
-
-    for(var i=0; i<dataItems.length; i++){
-
-        let item = dataItems[i];
-        let dataAttr = item.querySelector("[objData]").getAttribute("objData");
-
-        let dataObj = JSON.parse(dataAttr);
-        let userLabel = item.querySelector(".cwiDataUserLabel").textContent;
-        
-        let xmlItem = xml.createElement("item");
-        xmlItem.setAttribute("name", dataObj.name);  
-        xmlItem.setAttribute("rev", dataObj.rev);
-
-        let type = xml.createElement("type");
-        let desc = xml.createElement("desc");
-        let href = xml.createElement("href");
-        let label = xml.createElement("label");
-
-        type.textContent = dataObj.type;
-        desc.textContent = dataObj.desc;
-        href.textContent = dataObj.href;
-        label.textContent = dataObj.label;
-
-        xmlItem.appendChild(type);
-        xmlItem.appendChild(desc);
-        xmlItem.appendChild(href);
-        xmlItem.appendChild(label);
-
-        xml.documentElement.appendChild(xmlItem);
-    }
-    
-    let serializer = new XMLSerializer
-    let xmlStr = serializer.serializeToString(xml);
-    
-    var a = document.createElement("a")
-    a.href = URL.createObjectURL(
-        new Blob([xmlStr], {type:"text/xml"})
-    )
-    
-    a.download = "DZexport.xml"
-    a.click()
-
-}
-
-function z_exportToHTML(){
-    
-    let dataSection = document.getElementById("cwiDataSection");
-    let dataItems = dataSection.querySelectorAll(".cwiDataItem");
-
-    let html = document.implementation.createHTMLDocument();
-    let body = html.body;
-    
-    let style = html.createElement("style");
-    style.innerText = "body{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 500;}"
-    //  height: 50px; width: 100%;margin: 1px; padding: 1px; display: grid; grid-template-columns: 40px 150px auto 150px; grid-template-rows: 20px 20px;  row-gap: 3px;column-gap: 10px; cursor: move;"
-
-    html.body.appendChild(style);
-
-    let h1 = html.createElement("H1");
-    h1.textContent = activeCollectionName;
-
-    body.appendChild(h1);
-
-    let collectionData = window.localStorage.getItem(activeCollectionName);
-
-    if(!collectionData) return;
-
-    //let dataItems = JSON.parse(collectionData);
-
-    for(let key in dataItems){
-        let objData = dataItems[key];
-        createNewDataItem(objData);
-    }
-
-
-
-
-    for(var i=0; i<dataItems.length; i++){
-
-        let item = dataItems[i];
-
-        let a = item.getElementsByTagName("a");
-        let href = a.href;
-        let ojbdata = a.getAttribute("a");
-
-        let name = item.querySelector(".cwiDataName").textContent;
-        let desc= item.querySelector("cwiDataDesc").textContent;
-        let label = item.querySelector("cwiDataUserLabel").textContent;
-
-        let p1 = html.createElement("p");
-        let p2 = html.createElement("p");
-
-        p1.innerHTML = `${type} <a>${name}</a> ${desc} <br>${desc}`;
-        p2.textContent = label;
-
-
-        item.querySelector(".cwiDataIcon").innerHTML = "\u{1F517}";
-        body.appendChild(item);
-    }
-    
-    console.log(body.innerHTML);
-
-    var a = document.createElement("a")
-    a.href = URL.createObjectURL(
-        new Blob([html.documentElement.outerHTML], {type:"text/html"})
-    )
-    
-    //a.download = "DZexport.xml"
-    a.target = "_blank";
-    a.click()
-
-}
-
-function exportToHTML(){
-
-    console.log("exporting saved data");
-
-    // create new HTML documnet
-    let exportHTML = document.implementation.createHTMLDocument();
-    let exportBody = exportHTML.body;
-    
-    // heading
-    let h1 = exportHTML.createElement("H1");
-    h1.textContent = activeCollectionName;
-    exportBody.appendChild(h1);
-
-    //data items
-    let collectionData = window.localStorage.getItem(activeCollectionName);
-
-    if(!collectionData) return;
-
-    let dataItems = JSON.parse(collectionData);
-
-    for(let key in dataItems){
-        
-        let objData = dataItems[key];
-        let name = objData.name;
-
-        let newElement = createNewDataElement(objData);
-
-        newElement.querySelector(".cwiDataIcon").remove();
-        newElement.querySelector(".cwiDataName").remove();
-
-        newElement.getElementsByTagName("a")[0].textContent = name;
-        let type = objData.type;
-
-        console.log(newElement);
-
-        exportBody.appendChild(newElement);
-
-
-    }
-
-    var a = document.createElement("a")
-    a.href = URL.createObjectURL(
-        new Blob([exportHTML.documentElement.outerHTML], {type:"text/html"})
-    )
-    
-    a.download = "DZexport.html"
-    //a.target = "_blank";
-    a.click()
-
 }
